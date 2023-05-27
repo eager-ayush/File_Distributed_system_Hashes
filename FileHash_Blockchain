@@ -1,0 +1,47 @@
+pragma solidity ^0.8.9;
+
+contract FileStorage{
+
+    struct File{
+        bytes32 fileHash;
+        uint256 timestamp;
+    }
+
+    mapping(uint256 => File) public files;
+    uint256 fileCount;
+
+    address public owner;
+    mapping(address => bool) authorizedUsers;
+
+    event fileAdded(uint256 fileCount, bytes32 fileHash, uint256 timestamp);
+
+    modifier onlyOwner(){
+        require(owner == msg.sender, "Only contract owner can perform this action");
+        _;
+    }
+
+    modifier onlyAuthorized(){
+      require(authorizedUsers[msg.sender] , "Unauthorized user");
+      _;
+    }
+
+    constructor(){
+        owner = msg.sender;
+    }
+
+    function addFile(bytes32 _fileHash) public onlyAuthorized {
+        uint256 fileId = fileCount++;
+        files[fileId] = File(_fileHash , block.timestamp);
+        emit fileAdded(fileId , _fileHash , block.timestamp);
+    }
+
+    function authorizeUser(address _user) public onlyOwner{
+        authorizedUsers[_user] = true;
+
+    }
+
+    function revokeUser(address _user) public onlyOwner{
+        authorizedUsers[_user] = false;
+    }
+    
+}
